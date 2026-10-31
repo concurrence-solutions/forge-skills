@@ -74,8 +74,11 @@ Each skill fires automatically when your request matches, or invoke one explicit
 ### Installed from `amigo-ai-solutions/forge-skills`?
 
 This repo moved to `concurrence-solutions/forge-skills`. Older installs still update through a
-GitHub redirect, but re-point them once so they keep working if the redirect goes away. Check with
-`claude plugin marketplace list`; if `amigo-forge` shows the old repo:
+GitHub redirect, but **re-point them now**: the redirect only holds while nobody else claims the
+old name, and if someone does, auto-update would pull their content instead. In Claude Code,
+check with `claude plugin marketplace list` and switch if `amigo-forge` shows the old repo.
+`codex plugin marketplace list` shows only a local cache path, so in Codex, switch if you added
+the marketplace before the move:
 
 ```bash
 # Claude Code
@@ -88,6 +91,11 @@ codex plugin marketplace remove amigo-forge
 codex plugin marketplace add concurrence-solutions/forge-skills
 # then open /plugins, install forge from Amigo Forge, and start a new thread
 ```
+
+If a project's `.claude/settings.json` (or your managed settings) has an `extraKnownMarketplaces`
+entry for `amigo-forge`, change its `repo` to `concurrence-solutions/forge-skills` too (see
+[auto-enable](#optional-auto-enable-inside-a-claude-code-project)); otherwise the old source is
+registered again the next time the project starts.
 
 ### Codex
 
@@ -113,7 +121,7 @@ it on so Claude Code refreshes `amigo-forge` and updates the installed `forge` p
 - Per user, via the UI: run `/plugin` → **Marketplaces** → select `amigo-forge` → **Enable
   auto-update**.
 - Org-wide, via managed settings: set `"autoUpdate": true` on the marketplace entry (see the
-  snippet in [Optional: auto-enable inside a project](#optional-auto-enable-inside-a-project)).
+  snippet in [Optional: auto-enable inside a Claude Code project](#optional-auto-enable-inside-a-claude-code-project)).
 
 When auto-update pulls a new version, Claude Code shows a notification prompting you to run
 `/reload-plugins` — run it to activate the update in the current session.

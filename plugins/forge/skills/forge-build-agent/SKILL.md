@@ -51,11 +51,17 @@ Config comes from an env file, not a profile store. The Platform reads `.env.pla
 
 ```bash
 # A .env.platform.staging in the cwd supplies the required config, e.g.:
-#   PLATFORM_API_URL=https://platform.api-us.concurrence.com
+#   PLATFORM_API_URL=https://platform.api-staging.concurrence.com
 #   PLATFORM_WORKSPACE_ID=00000000-0000-0000-0000-000000000000
-#   IDENTITY_URL=https://identity.api-us.concurrence.com   # device-code auth (RFC 8628)
+#   IDENTITY_URL=https://identity.api-staging.concurrence.com   # device-code auth (RFC 8628)
 #   # or, for static-key auth instead of IDENTITY_URL:
 #   PLATFORM_API_KEY=<static key>
+# Production uses the regional hosts instead, e.g. US:
+#   PLATFORM_API_URL=https://platform.api-us.concurrence.com
+#   IDENTITY_URL=https://identity.api-us.concurrence.com
+# The old api[-<region>].platform.amigo.ai hosts are retired and no longer resolve. If an env
+# file still names one, replace it with the matching platform.api-<region> and
+# identity.api-<region> .concurrence.com hosts (the old host served both API and identity).
 
 # Authenticate against the Platform identity service (device-code prints a browser URL;
 # a static PLATFORM_API_KEY is a no-op confirm)
