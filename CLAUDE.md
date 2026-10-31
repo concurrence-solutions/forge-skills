@@ -22,6 +22,7 @@ skills drive the binary the user already installed (from `agent-forge-go`).
 - `forge-validate` — local, no-auth pre-push validation gate
 - `forge-sync` — read/edit/validate/deploy the entity JSON via `forge platform ...`
 - `forge-simulate` — regression sims + parity gate + rollback
+- `forge-tune-voice` - tune a phone or voice agent one layer at a time (+ `reference/voice-settings.md`, `reference/read-backs-and-pronunciation.md`, `reference/handoffs-and-confirmations.md`, `reference/voice-verification.md`)
 - `hello-forge` — placeholder
 
 ## Hard rules
@@ -37,7 +38,7 @@ skills drive the binary the user already installed (from `agent-forge-go`).
 3. **No `persona`.** The standalone persona entity is retired - author identity in the agent's
    own instructions; never reference a `persona` entity (or the word).
 4. **Version-sets:** `release` is the live set; pin a writable named set (e.g. `candidate`) to
-   test; `edge` is a reserved name that may not exist — don't target it.
+   stage versions for promotion; `edge` is a reserved name that may not exist - don't target it.
 5. **Model config:** three providers (OpenAI / Anthropic / Google Gemini), set on a version-set
    via `llm_model_preferences` through `forge platform version-set upsert --body/--file`. Keep
    model IDs family-level; the skill default is `claude-sonnet-4-6`.

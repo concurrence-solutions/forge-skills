@@ -20,7 +20,7 @@ Literal task phrases this skill should fire on:
 - "step through a controlled conversation and score it"
 - "show me the coverage graph / which paths the sims covered"
 
-Observable preconditions: a `forge` binary on `PATH`; a configured Platform profile — a `.env.platform.<env>` file with `PLATFORM_API_URL`, `PLATFORM_WORKSPACE_ID`, and either `PLATFORM_API_KEY` or `IDENTITY_URL` — verified with `forge auth status --platform`; a service that has a `release` version-set (the live set). To test a specific version combination, pin it into a writable named set such as `candidate` (see step 1).
+Observable preconditions: a `forge` binary on `PATH`; a configured Platform profile (a `.env.platform.<env>` file with `PLATFORM_API_URL`, `PLATFORM_WORKSPACE_ID`, and either `PLATFORM_API_KEY` or `IDENTITY_URL`) verified with `forge auth status --platform`; a service that has a `release` version-set (the live set). To simulate a specific version combination, give a test service those versions as its `release` (see step 6).
 
 ### When NOT to use -> use a sibling instead
 
@@ -28,8 +28,9 @@ Observable preconditions: a `forge` binary on `PATH`; a configured Platform prof
 - Editing the agent/context-graph/service and building the entity JSON -> use **/forge-build-agent**.
 - Checking local entity files for errors before pushing -> use **/forge-validate**.
 - Pushing local entities to Platform or pulling remote to local (deploying versions) -> use **/forge-sync** or **/forge-build-agent**.
+- Tuning voice settings, transfers or pronunciation of a phone agent -> use `/forge-tune-voice`.
 
-Use this skill only for the simulate -> parity-gate -> promote/rollback loop against an already-deployed service with a `release` version-set (and, optionally, a writable `candidate` set you pin for testing).
+Use this skill only for the simulate -> parity-gate -> promote/rollback loop against an already-deployed service with a `release` version-set (and, optionally, a writable `candidate` set you stage for promotion).
 
 ## Workflow
 
@@ -49,13 +50,16 @@ forge platform version-set list 00000000-0000-0000-0000-000000000000 --env stagi
 forge platform version-set get  00000000-0000-0000-0000-000000000000 release --env staging --json
 ```
 
-**Version-set model.** `release` is the live set the service serves. To test a specific
-agent + context-graph combination, pin it into a **writable named set** (e.g. `candidate`)
-with `forge platform version-set upsert <service-id> candidate -a <agent-ver> -g <graph-ver>`
-(see **/forge-build-agent**). **`edge` is a reserved name** — the CLI refuses to `upsert` it
-or `promote` into it (`cannot modify the 'edge' version set`), and it is not guaranteed to
-exist on a service, so don't target it. Simulate against `release` (current live behavior),
-or pin and target a `candidate` (step 3 uses `--branch candidate`).
+**Version-set model.** `release` is the live set the service serves, and simulations load it.
+To stage a specific agent + context-graph combination, pin it into a **writable named set**
+(for example `candidate`) with
+`forge platform version-set upsert <service-id> candidate -a <agent-ver> -g <graph-ver>`
+(see **/forge-build-agent**), then compare it with `release` and promote it. A named set is a
+saved selection, and `--branch` on the simulation commands only labels the run, so neither
+changes which versions a simulation runs. **`edge` is a reserved name**: the CLI refuses to
+`upsert` it or `promote` into it (`cannot modify the 'edge' version set`), and it is not
+guaranteed to exist on a service, so don't target it. Simulate against `release` (current live
+behavior). To simulate a candidate before it goes live, see step 6.
 
 ### 2. Multi-scenario regression (bridge)
 
@@ -84,14 +88,13 @@ session inspection (step 4) and the coverage graph (step 5).
 For a scripted, turn-by-turn check of a specific flow, open a run and drive a session by hand. This is the `simulation` surface (not `sim`).
 
 ```bash
-# Open a run (optionally pin it to the candidate branch/version-set).
-forge platform simulation run create --service-id 00000000-0000-0000-0000-000000000000 --branch candidate --env staging --json
+# Open a run.
+forge platform simulation run create --service-id 00000000-0000-0000-0000-000000000000 --env staging --json
 
 # Start a session inside that run.
 forge platform simulation session create \
   --run-id <run-id> \
   --service-id 00000000-0000-0000-0000-000000000000 \
-  --branch candidate \
   --caller-id 555-010-1234 \
   --env staging --json
 
@@ -125,13 +128,24 @@ forge platform simulation graph paths --service-id 00000000-0000-0000-0000-00000
 
 ### 6. Parity gate: compare candidate to release
 
-Before promoting, diff the two version-sets and confirm the `candidate` sims match or beat `release` on your core and safety behaviors.
+Before promoting, diff the two version-sets. The diff compares the agent pin, the context-graph pin and the model preferences.
 
 ```bash
 forge platform version-set diff 00000000-0000-0000-0000-000000000000 candidate release --env staging --json
 ```
 
-GO / NO-GO rule of thumb: for each topic, ~10 sims on the safety-critical and core behaviors (use ~30+ when the call is close or you're proving `candidate`↔`release` parity — see step 2), `candidate` at parity-or-better with `release`, no regression in the coverage graph. If any of that fails, it is a NO-GO — fix the candidate and re-run from step 2. Do not promote.
+Simulations run the service's `release` set, so they do not reach `candidate`. To simulate the candidate versions, give a test service those versions as its `release`, then run the same sims on the live service and on the test service. Copy the live model preferences so the two services match. `service create` writes at once, so run it only when the user asks for a test service.
+
+```bash
+forge platform service create --name "Acme Test Service" --agent-id 00000000-0000-0000-0000-000000000000 --context-graph-id 00000000-0000-0000-0000-000000000000
+forge platform version-set get 00000000-0000-0000-0000-000000000000 release --json > release.before.json
+jq -c '{llm_model_preferences: (.llm_model_preferences // {})}' release.before.json > test-preferences.json
+forge platform version-set upsert <test-service-id> release --body "$(cat test-preferences.json)" --agent-version <agent-ver> --context-graph-version <graph-ver>
+```
+
+The upsert is a dry run until you add `--apply`.
+
+GO / NO-GO rule of thumb: for each topic, ~10 sims on the safety-critical and core behaviors (use ~30+ when the call is close or you are proving parity between `candidate` and `release`; see step 2), the test service's sims at parity-or-better with the live service's, no regression in the coverage graph. If any of that fails, it is a NO-GO: fix the candidate and re-run from step 2. Do not promote.
 
 ### 7. Cut over (promote) — mutation, requires --apply
 
@@ -154,15 +168,21 @@ forge platform version-set rollback 00000000-0000-0000-0000-000000000000 --env s
 forge platform version-set rollback 00000000-0000-0000-0000-000000000000 --env staging --apply
 ```
 
+## Voice agents
+
+Simulations are text-tier. They check behavior and tool coverage, not pronunciation, digit pacing, talk-over or turn timing. For voice settings, test calls and the call record, use `/forge-tune-voice`.
+
 ## Hand-off
 
 - Scoping what to test (topics, behaviors, tools) -> **/forge-agent-design**.
 - Changing the agent/context-graph and deploying new versions of the entities under test -> **/forge-build-agent** and **/forge-sync**.
+- Tuning voice settings, transfers or pronunciation, or judging a phone agent on real audio -> `/forge-tune-voice`.
 
 ## Safety
 
 - Read-only first. `sim bridge`, `simulation session`/`run`/`graph`, `sim session-observe`/`session-intelligence`, and `version-set list`/`get`/`diff` do not change anything.
 - Mutations only on explicit request. `version-set upsert`, `version-set promote`, and `version-set rollback` are dry-run by default and change the live service only when you add `--apply` — run them with `--apply` solely when the user asks to cut over or roll back, after the parity gate passes.
+- `service create`, for a test service, writes at once with no dry run. Run it only when the user asks.
 - Keep the fallback. Promote keeps a backup of `release` unless you pass `--no-backup` (do not) so `version-set rollback ... --apply` can restore it.
 - Synthetic data only. Use invented scenarios and placeholder caller ids (e.g. 555-010-1234); never feed real caller conversations, PII, or customer identifiers into a simulation.
 - Never write real customer or organization names, workspace ids, phone numbers, emails, or URLs into notes, commits, or PRs.

@@ -22,6 +22,7 @@ Use this skill when the user says things like:
 - Only checking that local entity JSON is well-formed -> use `/forge-validate`.
 - Only pulling remote state down or pushing local edits up (no new entities to author) -> use `/forge-sync`.
 - Regression, parity, or a promotion gate before shipping -> use `/forge-simulate`.
+- Tuning voice settings, transfers or pronunciation of a phone agent -> use `/forge-tune-voice`.
 
 ## Cascade build order
 
@@ -145,6 +146,8 @@ forge platform service voice-config <service-id> --get
 forge platform service escalation-policy <service-id> --get
 ```
 
+For a phone or voice agent, hand off to `/forge-tune-voice` before you change voice settings. A preset or body write is live for the next call, and a preset can clear the realtime settings, so read and save the current voice block first.
+
 #### Step 7A - Pin versions with a version-set
 
 Pin the agent + context-graph versions into a writable, named version set (use a name you own, e.g. `candidate`). Do NOT target the `edge` set: it auto-tracks the latest versions and the CLI refuses to modify it (`cannot modify the 'edge' version set`). Version-set mutations are dry-run by default; re-run with `--apply` once the plan looks right.
@@ -158,6 +161,20 @@ forge platform version-set list <service-id> --json
 # optionally promote the vetted set into your release set (also dry-run by default):
 forge platform version-set promote <service-id> candidate release --apply
 ```
+
+Pin `release` as well. A version set that leaves `agent_version_number` or `context_graph_version_number` empty serves the latest version of that component, so every new agent or graph version goes live for the next session. A service created without `version_sets` starts with an unpinned `release`, and `forge platform push --apply` posts a new version of each agent and context graph it pushes, so with an unpinned `release` every push changes the live service. Pin both numbers on `release` to the versions you tested, change them only on purpose, and write them down before each promote. Take the numbers from `forge platform agent list-versions <agent-id>` and `forge platform context-graph list-versions <graph-id>`. On a first pass, pin the newest version of each, which keeps the live behavior the same. The upsert is a dry run until you add `--apply`:
+
+```bash
+forge platform version-set upsert <service-id> release --copy-from release --agent-version 1 --context-graph-version 1
+```
+
+What a version-set write replaces:
+
+- A write replaces the agent pin, the graph pin and the model preferences. `--copy-from release` seeds those three from `release`, so a pin you leave out of the command stays as `release` has it. A candidate made without `--copy-from` has empty model preferences, and promoting it writes those over the ones on `release`.
+- Dynamic behavior pins that a write leaves out keep what the target set stores, and `[]` clears them. `--copy-from`, `promote` and `rollback` never copy another set's behavior pins, so a new set starts with none and a promote leaves the target's pins as they are. `version-set diff` compares only the two pins and the model preferences, so read `version-set get --json` on both sets to compare behavior pins.
+- A promote writes the source's agent pin, graph pin and model preferences to the target. When the target is `release`, it first saves the old `release` as `release-previous`, and the next promote overwrites that backup. The backup of an unpinned `release` restores `latest`, so pin `release` before the first promote.
+
+To try a draft without touching callers, give a test service the draft versions as its `release` (see `/forge-simulate`, step 6).
 
 ---
 

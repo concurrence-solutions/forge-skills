@@ -74,6 +74,25 @@ the **fewest constraints that reliably produce the behavior**.
 - **One idea at a time in output** — favor a single concept per response and avoid stacked
   questions.
 
+### Collision audit: one owner per behavior
+
+Two instructions that govern the same moment can give opposite orders, and the agent has to pick one. It shows up as loops, repeated questions and replies that cut the caller off. A contradiction is the signal, not the size of the prompt.
+
+Audit one state at a time:
+
+1. Save the authored text to files with `forge platform agent get-version <agent-id> <version> > agent-version.json`, `forge platform context-graph get-version <graph-id> <version> > graph-version.json` and `forge platform tool-test resolve --service-id <service-id> > tools.json`. The tool file holds each tool's `description`, `additional_instructions` and `states`.
+2. List every instruction the agent sees in that state: the agent's identity and behaviors, the graph's global guidelines, the state's own fields, each bound tool's description and extra instruction, and any text a tool result returns.
+3. Group them by the behavior they govern, such as how to ask for a code or what to say after a transfer.
+4. Where two places cover one behavior, keep one and delete the other. Quote each exact sentence in one place only.
+
+Duplicating a guideline into the states that need it is deliberate (see Lean global guidelines below). One owner per behavior means one owner in the text a single state sees, not one copy in the whole graph. This `jq` line lists exact duplicate sentences across the saved files, and near duplicates need a read:
+
+```bash
+jq -r '.. | strings | split("\n")[] | split(". ")[] | gsub("^\\s+|[\\s.]+$"; "") | select(length > 20)' agent-version.json graph-version.json tools.json | sort | uniq -d
+```
+
+The saved JSON is the authored text and the assembled prompt also holds platform wording, so finish in the Playground inspector: ask the user to open one turn's prompt log, and check that each exact sentence appears once. Use synthetic calls, because a prompt log can hold caller words.
+
 ### Structure the identity as background elements
 
 Author the agent's identity as a background with these elements (the first four are required):
@@ -334,6 +353,7 @@ agent's own globals, not scattered as per-state rules.
 - [ ] Action guidelines vs. boundary constraints separated; must-be-exact behavior routed out to a `skill`.
 - [ ] Minimal viable constraint: built reductively; no obvious instructions; no competing "HIGHEST PRIORITY" rules.
 - [ ] Explicit priority order stated so conflicts resolve deterministically.
+- [ ] Each behavior (how to ask for a code, what to say after a transfer) has one owner in the text a state sees, and no two sentences give opposite orders at the same moment.
 - [ ] Each state passes "exists to ___ / complete when ___" in one sentence.
 - [ ] Each state name passes the pinpoint test; least-constraining state type chosen.
 - [ ] Density tuned per state (~2-6 actions, ~3-8 nav guidelines); light/dense mixed deliberately.
