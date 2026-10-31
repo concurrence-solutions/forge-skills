@@ -5,7 +5,7 @@ description: Regression-test, simulate, and smoke-test an Amigo agent before rel
 
 # Forge Simulate
 
-The regression / eval + parity-gate + rollback step: prove parity before cutover, keep the fallback, and define the rollback. Every command is `forge platform ...` against the Amigo Platform (`api.platform.amigo.ai`).
+The regression / eval + parity-gate + rollback step: prove parity before cutover, keep the fallback, and define the rollback. Every command is `forge platform ...` against the Amigo Platform host set by `PLATFORM_API_URL` in `.env.platform.<env>` (for example `platform.api-staging.concurrence.com` for staging, `platform.api-us.concurrence.com` for US production).
 
 ## When to use
 

@@ -32,7 +32,7 @@ New skills go in `plugins/forge/skills/<name>/SKILL.md`. Put helper scripts unde
 ## Command surface (hard rules)
 
 - **Document only `forge platform ...` commands.** `forge validate` (local, no API) and `forge auth ... --platform` are also allowed. Do **not** document the classic backend commands `sync-to-local` / `sync-to-remote` (aliases `stl` / `str`) or the legacy `.env.<env>` surface — the Platform surface uses `.env.platform.<env>`.
-- **Verify against the released binary.** Run every command against the release artifact (`curl -fsSL https://forge.platform.amigo.ai/install.sh | sh`, currently ≥ 0.1.23) before documenting it. Model configuration (`forge platform version-set upsert --body`) requires ≥ 0.1.23.
+- **Verify against the released binary.** Run every command against the release artifact (`curl -fsSL https://concurrence-hq.github.io/agent-forge-go/install.sh | sh`, currently ≥ 0.1.23) before documenting it. Model configuration (`forge platform version-set upsert --body`) requires ≥ 0.1.23.
 - **No `persona`.** The standalone persona entity is retired; author identity in the agent's own instructions and never reference a `persona` entity (or the word).
 - **Version-sets:** `release` is the live set; pin a writable named set (for example `candidate`) to stage versions for promotion; `edge` is a reserved name that may not exist - don't target it.
 
