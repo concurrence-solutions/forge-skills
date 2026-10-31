@@ -64,6 +64,7 @@ Building an Amigo agent with the `forge` CLI, front to back:
 | `forge-validate` | Run the local, no-auth pre-push gate over your entity JSON (`forge validate`). |
 | `forge-sync` | Read, edit, validate, and deploy entity data via `forge platform` (`forge platform <entity> get`, then `forge platform push` — dry-run, then `--apply`). |
 | `forge-simulate` | Regression-test and prove parity before promoting a `version-set`, keeping a rollback path. |
+| `forge-tune-voice` | Tune a phone or voice agent one layer at a time: read and change voice settings with a saved copy to roll back to, work through talk-over, cut-offs, code entry, pronunciation and transfers, and check each change on real calls. Needs forge 0.1.82 or newer. |
 
 Each skill fires automatically when your request matches, or invoke one explicitly, e.g.
 `$forge-agent-design` in Codex or `/forge:forge-agent-design` in Claude Code.

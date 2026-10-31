@@ -27,6 +27,7 @@ Reach for this skill when the task sounds like:
 - Just checking local files pass validation -> use **/forge-validate**.
 - Pulling remote entities down / pushing local up -> use **/forge-sync**.
 - Running regression or interactive simulations to prove behavior -> use **/forge-simulate**.
+- Tuning how a phone or voice agent behaves on calls (interruptions, turn-taking, transfers, pronunciation) -> use `/forge-tune-voice`.
 
 This skill decides *what to build and where*; the others build, validate, sync, and test it.
 
@@ -135,6 +136,10 @@ deterministic.
   simulations, deploy via a `service` + `version-set`, cut over with
   `forge platform version-set promote`, keep `forge platform version-set rollback`.
 - [ ] Which stable parts can be **pushed down to a `function`/data** now (or soon)?
+- [ ] A phone or voice symptom? Name the owner before you edit: service voice settings
+  (interruptions, turn-taking, transfers), the agent or graph text (what to say), or a tool
+  or `function` (a check that must be exact, a declared write). Tune it with
+  `/forge-tune-voice`, one layer per round.
 
 ## Safety
 

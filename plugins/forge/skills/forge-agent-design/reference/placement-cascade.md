@@ -71,13 +71,16 @@ forge platform version-set rollback <service-id> --apply                     # r
 | Agent keeps **selecting the wrong tool** / tool overload | Split | fewer tools per agent; route modes via `context_graph` states |
 | Voice/identity/tone **scattered** across instructions | The agent | author identity in the `agent`'s own global instructions, reinforced by the `context_graph` |
 | Two agents that could **both write** the same state | Keep writes single-threaded | exactly one writer commits; others contribute intelligence only |
+| A phone agent talks over callers, answers early, misses a code, says a name wrong or cannot reach a person | Service voice settings, a tool, or one graph rule, one layer per round | name the owner and tune it with `/forge-tune-voice` (needs forge 0.1.82 or newer) |
+| The agent says it sent or booked something and the reply is cut | The tool | declare `declarations.writes` on the integration endpoint so the claim has a write to rest on; see `/forge-tune-voice` |
 
 ---
 
 ## Prove parity before cutover
 
 Before removing an old path, prove the new one matches on a binary, per-category basis.
-Use **synthetic** data only.
+Use **synthetic** data only. Simulations run the service's `release` set, so point them at a
+service whose `release` holds the new versions (see `/forge-simulate`, step 6).
 
 ```bash
 # broad regression coverage against a service (many generated scenarios)
