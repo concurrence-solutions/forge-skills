@@ -51,9 +51,9 @@ Config comes from an env file, not a profile store. The Platform reads `.env.pla
 
 ```bash
 # A .env.platform.staging in the cwd supplies the required config, e.g.:
-#   PLATFORM_API_URL=https://api.platform.amigo.ai
+#   PLATFORM_API_URL=https://platform.api-us.concurrence.com
 #   PLATFORM_WORKSPACE_ID=00000000-0000-0000-0000-000000000000
-#   IDENTITY_URL=https://api.platform.amigo.ai          # device-code auth (RFC 8628)
+#   IDENTITY_URL=https://identity.api-us.concurrence.com   # device-code auth (RFC 8628)
 #   # or, for static-key auth instead of IDENTITY_URL:
 #   PLATFORM_API_KEY=<static key>
 

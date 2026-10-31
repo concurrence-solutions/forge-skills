@@ -1,12 +1,12 @@
 {
   "name": "forge",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Skills for the Amigo forge CLI",
   "author": {
     "name": "Amigo",
     "email": "support@amigo.ai"
   },
-  "repository": "https://github.com/amigo-ai-solutions/forge-skills",
+  "repository": "https://github.com/concurrence-solutions/forge-skills",
   "license": "MIT",
   "keywords": ["amigo", "forge", "agents", "platform"],
   "skills": "./skills/",

@@ -34,7 +34,7 @@ skills drive the binary the user already installed (from `agent-forge-go`).
 2. **Verify every command against the RELEASED `forge` binary, not a source build.** A source
    build can be ahead of what customers run. Current release is **≥ 0.1.23**; model
    configuration (`version-set upsert --body`) requires it. Grab the release
-   (`curl -fsSL https://forge.platform.amigo.ai/install.sh | sh`) and run each command first.
+   (`curl -fsSL https://concurrence-hq.github.io/agent-forge-go/install.sh | sh`) and run each command first.
 3. **No `persona`.** The standalone persona entity is retired - author identity in the agent's
    own instructions; never reference a `persona` entity (or the word).
 4. **Version-sets:** `release` is the live set; pin a writable named set (e.g. `candidate`) to
