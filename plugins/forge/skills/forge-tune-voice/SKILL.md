@@ -120,12 +120,12 @@ A `--body` write never removes a key. If the saved copy is `null` because the se
 | It says it sent or booked something and the reply is cut | The endpoint's `declarations.writes` | Declare the kind and a success rule. `handoffs-and-confirmations.md` |
 | A reply with opening hours or open slots is cut for an unverified caller | The endpoint's `declarations.reads` | Declare `patient_in` as `none` on an endpoint that returns only practice data. `handoffs-and-confirmations.md`, Spoken confirmations |
 | You want another voice family, model or voice, such as GPT-Live | `session_provider`, then `forge platform voice-families list` | `voice-config --family` with a model and a voice the listings show. `voice-settings.md`, Choose a voice family |
-| It will not hand off, or the transfer never connects | `voice_config.forwarding` | Set the block, `fallback_to` and a short announcement. `handoffs-and-confirmations.md` |
+| It will not hand off, or the transfer never connects | `voice_config.forwarding`, then the phone line's allowed forwarding list | Set the block, `fallback_to` and a short announcement, and put each number on both lists. `handoffs-and-confirmations.md`, Two lists |
 | After closing time, a transfer rings a line nobody answers | `voice_config.forwarding.hours` | Set `hours` and `after_hours_destination` together on a dynamic service. `handoffs-and-confirmations.md`, After hours |
 | Test calls cut themselves off or answer themselves | How you place the call | Ask the user to use a headset or a handset. `voice-verification.md` |
 | Results change between rounds | The pins on `release` | Pin both numbers. `voice-verification.md` |
 
-The files in `reference/` hold the depth: `voice-settings.md` (settings, runtimes, turn-taking), `read-backs-and-pronunciation.md` (read-back formats, pronunciation levers), `handoffs-and-confirmations.md` (forwarding, transfers, codes, declared writes and reads) and `voice-verification.md` (pins, test paths, the call record, counts, sample size).
+The files in `reference/` hold the depth: `voice-settings.md` (settings, runtimes, turn-taking), `read-backs-and-pronunciation.md` (read-back formats, pronunciation levers), `handoffs-and-confirmations.md` (forwarding, the two transfer lists, transfers, codes, declared writes and reads) and `voice-verification.md` (pins, test paths, the call record, counts, sample size).
 
 ## Safety
 
