@@ -8,7 +8,7 @@ Companion to `forge-tune-voice`. These are the fields of a service's `voice_conf
 forge platform service voice-config <service-id> --get --json --env test-org > service-voice.before.json
 ```
 
-Without `--json`, `--get` prints a heading line before the JSON, so save with `--json` whenever you plan to send the file back. Each command runs exactly one of `--preset`, `--body`, `--realtime-voice` and `--get`.
+Without `--json`, `--get` prints a heading line before the JSON, so save with `--json` whenever you plan to send the file back. Each command runs exactly one of `--preset`, `--body`, `--family`, `--realtime-voice` and `--get`.
 
 This skill needs forge 0.1.82 or newer. Run `forge --version` before any `--preset` or `--body` write, and update first if it is older.
 
@@ -42,11 +42,12 @@ diff service-voice.before.json service-voice.after.json
 
 ## Which runtime reads what
 
-Check `session_provider` before you tune. It resolves from the service, then the agent version's `voice_config`, then `amigo`. A setting the serving runtime does not read is saved and ignored. The exception is `realtime`, which the API refuses with a 422 unless `session_provider` is `gpt_realtime`.
+Check `session_provider` before you tune. It resolves from the service, then the agent version's `voice_config`, then `amigo`. A setting the serving runtime does not read is saved and ignored. The exception is a family's own block, the key `voice-families list` shows as its `config_key` (such as `realtime` or `gpt_live`), which the API refuses with a 422 unless `session_provider` names that family.
 
 | Runtime | Settings it reads |
 |---|---|
 | `gpt_realtime` (speech to speech) | `realtime.*`, `held_turn_policy` |
+| `gpt_live` (OpenAI listens and speaks, the platform's engine reasons) | `gpt_live.model`, `gpt_live.voice` |
 | The platform-managed runtime (speech recognition, reasoning and speech output as separate steps) | `barge_in_cooldown_s`, the filler fields, `max_response_sentences`, `max_response_words`, `eager_eot_threshold`, `eot_timeout_ms`, `post_eot_pause_ms`, `transition_deadline_ms`, `empathy_hold_ms`, a state's `turn_policy` |
 | Both | `barge_in_min_speech_s`, `forwarding`, `progress_vocabulary`, `progress_interval_ms` |
 
@@ -62,17 +63,57 @@ Check `session_provider` before you tune. It resolves from the service, then the
 - `transition_deadline_ms` (default 800) is the longest silence after the caller's end of turn before a filler plays.
 - `empathy_hold_ms` (default 500) is silence held on purpose for an empathy moment.
 
+## Choose a voice family
+
+A service runs on one voice family, named by `session_provider`. Read the families, their models and their voices from the Platform API before you switch, rather than from a list you keep:
+
+```bash
+forge platform voice-families list --env test-org
+forge platform voice-families list --json --env test-org > voice-families.json
+forge platform voice-families voices gpt_live --env test-org
+```
+
+- `list` shows every family, whether this workspace can use it and why not, its `config_key` and its models. With `--json` it adds each family's `capabilities` and the JSON schema of its options. These come from `GET /v1/{workspace_id}/voice-families`.
+- `voices <family>` pages the family's voices from `GET /v1/{workspace_id}/voice-families/{family}/voices`. Pass the `--continuation-token` it prints for the next page, and `--search` to narrow the list.
+- Read the family's `capabilities` before you switch. A family without `multi_state` needs a context graph version that is exactly one action state, and the save returns a 422 for any other graph. `outbound_calls`, `warm_transfer` and `operator_takeover` say whether the family places outbound calls, makes warm transfers and lets an operator take over a call.
+
+Switch with `--family`, naming a model and a voice from those listings:
+
+```bash
+forge platform service voice-config <service-id> --family gpt_live --model gpt-live-1 --voice marin --env test-org
+```
+
+- `--family` sets `session_provider` and clears every other family's settings (each other family's `config_key` and `legacy_keys`), so no leftover block gets the save refused. Keys outside the family blocks, such as `forwarding`, keep their value.
+- `--model` and `--voice` go into the family's own block and keep its other keys. forge refuses a family the workspace cannot use, and a model the family does not list, before it writes. The API refuses a voice the family does not have.
+- Without `--model` and `--voice`, the service gets the family's defaults.
+- `--family` and the `voice-families` commands need a forge release that has `forge platform voice-families`. If `forge platform voice-families list` reports an unknown resource, run `forge update`.
+
+### GPT-Live
+
+`gpt_live` puts OpenAI's GPT-Live in front of the call to listen and speak, with the platform's reasoning engine behind it running the conversation.
+
+- Set it on the service. An agent version cannot select `gpt_live`.
+- It is for US workspaces only, and a workspace with regional data residency is refused. `voice-families list` shows when a workspace cannot use it, and why.
+- `gpt-live-1` is the default model. `gpt-live-1.1-leopard-2-alpha` is OpenAI's GPT-Live 1.1 multilingual alpha (English, Spanish, Portuguese, Chinese, French, German, Hindi, Japanese and Korean first). It is opt-in per service and may change, and its behavior and availability follow OpenAI's alpha. Pick from the models `voice-families list` shows for `gpt_live`.
+- The default voice is `marin`. `voice-families voices gpt_live` lists the rest.
+
+```bash
+forge platform service voice-config <service-id> --family gpt_live --model gpt-live-1.1-leopard-2-alpha --env test-org
+```
+
+Save the voice block first, and try the alpha on a test service before a live one (see `voice-verification.md`).
+
 ## Presets and voices
 
 ```bash
 forge platform service voice-config <service-id> --preset gpt_realtime --env test-org
 forge platform service voice-config <service-id> --preset balanced --env test-org
-forge platform service voice-config <service-id> --realtime-voice marin --env test-org
+forge platform service voice-config <service-id> --family gpt_realtime --voice marin --env test-org
 ```
 
-- `gpt_realtime` sets only `session_provider: gpt_realtime` and keeps everything else. A service on `gpt_realtime` needs a context graph version that is exactly one action state, and the save returns a 422 for any other graph. Count the action states in the graph before you switch.
-- `ultra_low_latency`, `balanced` and `quality` move the service to the platform-managed runtime and clear `realtime` and `realtime_voice`, because the API accepts both only under `gpt_realtime`. `balanced` also sets `filler_style`. `quality` sets `filler_style` and `max_buffer_delay_ms`. `ultra_low_latency` sets those two plus `filler_vocabulary`, `backchannel_delay_ms` and `max_response_sentences` (to 1). A preset can discard realtime tuning, so save the voice block first.
-- `--realtime-voice` changes only the voice. It needs a service already on `gpt_realtime`, sets `realtime.voice`, and drops the deprecated `realtime_voice` shortcut. Accepted voices are alloy, ash, ballad, cedar, coral, echo, marin, sage, shimmer and verse.
+- A preset switches family the way `--family` does, then writes its own keys. `gpt_realtime` moves the service to `gpt_realtime` and keeps its `realtime` block. Read the family's `capabilities` first (see Choose a voice family).
+- `ultra_low_latency`, `balanced` and `quality` move the service to the platform-managed runtime and clear every other family's settings, because the API accepts a family's block only under that family. `balanced` also sets `filler_style`. `quality` sets `filler_style` and `max_buffer_delay_ms`. `ultra_low_latency` sets those two plus `filler_vocabulary`, `backchannel_delay_ms` and `max_response_sentences` (to 1). A preset can discard realtime or GPT-Live settings, so save the voice block first.
+- `--family gpt_realtime --voice <voice>` sets `realtime.voice` and drops the deprecated `realtime_voice` shortcut. `voice-families voices gpt_realtime` lists the voices. `--realtime-voice <voice>` does the same on a service already on `gpt_realtime`.
 
 ## Barge-in on gpt_realtime
 
