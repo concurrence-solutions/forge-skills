@@ -1,6 +1,6 @@
 ---
 name: forge-tune-voice
-description: Tune how a phone agent behaves on live calls with the forge CLI by reading a service's voice settings, changing one layer at a time with a saved copy to roll back to, and checking each change on real calls. Use when a forge binary is on PATH, a service has voice settings, and the user says the agent interrupts, talks over or cuts off callers, answers before they finish, asks callers to repeat or restart a code, mispronounces a name, reads a value back badly, will not hand off to a person, or says it sent something and the reply is cut, or asks about voice settings, barge-in, turn detection or test calls. Not for building, validating, syncing or simulating an agent (use forge-build-agent, forge-validate, forge-sync, forge-simulate).
+description: Tune how a phone agent behaves on live calls with the forge CLI by reading a service's voice settings, changing one layer at a time with a saved copy to roll back to, and checking each change on real calls. Use when a forge binary is on PATH, a service has voice settings, and the user says the agent interrupts, talks over or cuts off callers, answers before they finish, asks callers to repeat or restart a code, mispronounces a name, reads a value back badly, will not hand off to a person, or says it sent something and the reply is cut, or asks about voice settings, voice families such as GPT-Live, voice models and voices, barge-in, turn detection or test calls. Not for building, validating, syncing or simulating an agent (use forge-build-agent, forge-validate, forge-sync, forge-simulate).
 ---
 
 # Forge Tune Voice
@@ -18,6 +18,7 @@ Use this skill when the user says things like:
 - "It will not hand off to a person" or "the transfer never connects."
 - "It says it sent something and the reply is cut."
 - "Which voice settings should I change?" (barge-in, turn detection, presets, voices)
+- "Put this service on GPT-Live" or "which voice models and voices can this service use?"
 
 Observable preconditions: a `forge` binary on `PATH`, a profile in `.env.platform.<env>` that `forge auth status --platform` accepts, and a service with voice settings. This skill needs forge 0.1.82 or newer. Examples use `--env test-org` as the profile name, here and in `reference/`, with placeholder ids.
 
@@ -37,7 +38,7 @@ Observable preconditions: a `forge` binary on `PATH`, a profile in `.env.platfor
 | Service voice settings | `voice-config --get --json` to a file | Send the saved block back with `--body` and diff (Step 6) |
 | Agent or graph text | `version-set get release --json` to a file, after you pin `release` (Step 3) | Move the pin back to the numbers you wrote down with `version-set upsert`. A saved copy with null pins is no undo, because the new version was already live |
 | Tool or endpoint contract | The endpoint JSON you created it from, or a copy of its definition from the web console or the API | Put the saved values back in the web console or with the API's endpoint update. `endpoint-create` refuses a name that already exists. Every service that uses the endpoint shares it, and it sits outside a version set |
-| Graph structure (split or merge states) | The same pins | The same pin move. `gpt_realtime` needs exactly one action state, so it takes no split states |
+| Graph structure (split or merge states) | The same pins | The same pin move. A voice family without `capabilities.multi_state` in `forge platform voice-families list --json` needs exactly one action state, so it takes no split states |
 
 - Keep a saved copy before every change. A restore is one command, and a diff confirms it.
 - Pin what you test. An empty pin on `release` serves the latest version, so a save in the middle of a round changes what you are testing.
@@ -118,6 +119,7 @@ A `--body` write never removes a key. If the saved copy is `null` because the se
 | A name is said wrong | `session_provider` | On `gpt_realtime`, a respelling in the agent text or a spoken form in a tool result. On the platform-managed runtime, `pronunciation_dict_id`. Accept any change by ear. `read-backs-and-pronunciation.md` |
 | It says it sent or booked something and the reply is cut | The endpoint's `declarations.writes` | Declare the kind and a success rule. `handoffs-and-confirmations.md` |
 | A reply with opening hours or open slots is cut for an unverified caller | The endpoint's `declarations.reads` | Declare `patient_in` as `none` on an endpoint that returns only practice data. `handoffs-and-confirmations.md`, Spoken confirmations |
+| You want another voice family, model or voice, such as GPT-Live | `session_provider`, then `forge platform voice-families list` | `voice-config --family` with a model and a voice the listings show. `voice-settings.md`, Choose a voice family |
 | It will not hand off, or the transfer never connects | `voice_config.forwarding` | Set the block, `fallback_to` and a short announcement. `handoffs-and-confirmations.md` |
 | After closing time, a transfer rings a line nobody answers | `voice_config.forwarding.hours` | Set `hours` and `after_hours_destination` together on a dynamic service. `handoffs-and-confirmations.md`, After hours |
 | Test calls cut themselves off or answer themselves | How you place the call | Ask the user to use a headset or a handset. `voice-verification.md` |
@@ -127,7 +129,7 @@ The files in `reference/` hold the depth: `voice-settings.md` (settings, runtime
 
 ## Safety
 
-- Read first. `--get`, `version-set get`, `run list`, `run get` and `conversation get` change nothing.
+- Read first. `--get`, `voice-families list`, `voice-families voices`, `version-set get`, `run list`, `run get` and `conversation get` change nothing.
 - A `voice-config` write is live for the next call and has no dry run. Save the copy first, change one field, and write only when the user asks. Calls already running keep the settings they started with.
 - `version-set upsert`, `promote` and `rollback` are dry runs until you add `--apply`. Add it only when the user asks.
 - `agent create-version`, `context-graph create-version`, `integration endpoint-create` and `service create` write at once, with no dry run. Run them only when the user asks. `service delete` asks for a confirmation and removes the service.
