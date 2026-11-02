@@ -28,7 +28,42 @@ forge platform service voice-config <service-id> --env test-org --body '{
 }'
 ```
 
-Write real numbers in E.164 format. Each destination must also be on the line's allowed forwarding list.
+Write real numbers in E.164 format. Each destination must also be on the phone line's allowed forwarding list, as the next section explains.
+
+### Two lists: the service's and the phone line's
+
+A transfer connects only when its number is on two lists. Each list decides something different, and different people keep them.
+
+| List | Kept by | What it decides |
+|---|---|---|
+| The service's `forwarding` block | You, with `voice-config` | What the agent may offer and dial on this service |
+| The phone line's allowed forwarding list, on its voice use case | The phone line's owner | Which numbers any call on that phone line may be connected to |
+
+- The service's list is what the agent may offer and dial. That is `forward_to`, or the `approved_destinations` it picks from, and on a test call the `test_destinations`. On a service with staffed `hours`, every transfer outside them dials the `after_hours_destination`. Any other number is refused, such as one the caller reads out or one in a document or a tool result. `fallback_to` is on the list too: the platform, not the agent, hands the call to it when it cannot run the agent.
+- The phone line's list approves each number for that phone line. A warm or cold transfer from a call on the line is refused unless the number is on the list as the same E.164 number, and an empty list allows none. Each voice use case has its own list, so a service bound to an inbound and an outbound use case needs the number on both.
+- The phone line's list is shared with operators: when an operator joins a call on the line, their phone is dialed through the same list. That is why saving a service never writes it.
+
+When the lists are compared:
+
+- A service save that adds a number a live call can dial (`forward_to`, `fallback_to` or an approved destination, the after-hours line among them) checks every such number in the block against the list of each voice use case bound to the service. A number the list lacks is refused with a 422 `destination_not_allowed_by_use_case`, and one of the line's own numbers with `destination_is_own_number`. The 422 names the use case (`use_case_id`), its `channel` (`inbound_voice` or `outbound_voice`) and the labels of the refused destinations. A 503 means the list could not be read and nothing was saved, so try again.
+- A save that adds no such number, such as a new label, a removal, the hours or the test lines, is not checked.
+- Binding a voice use case to the service checks the service's numbers the same way, so a service bound to no voice use case is checked when you bind it:
+
+```bash
+forge platform use-case bind <use-case-id> --service-id <service-id> --env test-org
+```
+
+**Test lines need to be on both lists.** Neither a save nor a bind checks `test_destinations`, so a test line missing from the phone line's list shows up only on a test call: the transfer is refused and the agent tells the caller. Ask the line's owner to add every test line before you test transfers.
+
+**Removing a number from the phone line's list later is never re-checked against the service.** The service keeps the number, and nothing tells you. From then on, calls on that line are not offered it. A dynamic service offers only the approved destinations still on the list, and a service gets no transfer tool at all when none is left, when its after-hours line is off the list, or when its `forward_to` number is off it. A `fallback_to` off the list is refused when the platform hands a call to it, and the call ends. The next save that adds a number checks the whole block, so it is refused for the removed one. To retire a number, take it off the service first, then ask the line's owner to remove it from the list.
+
+**How to ask for a number.** Ask the phone line's owner to add it before you save or bind the service. For a phone line Amigo set up for you, ask your Amigo contact. Send:
+
+- the use case id and its channel, `inbound_voice` or `outbound_voice` (a 422 names both), and whether the service takes inbound calls, outbound calls or both;
+- the number in E.164 format and the label you give it in `forwarding`;
+- what it is for: a live destination, the fallback line, the after-hours line or a test line.
+
+A save checks the list as it is at that moment, so save again as soon as the owner confirms the number is on it.
 
 ### The fallback line
 
