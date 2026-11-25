@@ -9,7 +9,7 @@ Companion to `forge-tune-voice`. Three things callers notice quickly: whether th
 | Field | What it does |
 |---|---|
 | `forward_to` | The single number a transfer dials. Null on a dynamic service. |
-| `warm_transfer` | Chooses a warm or cold transfer. Set it explicitly. |
+| `warm_transfer` | Chooses a warm or cold transfer. Set it explicitly. On `grok_duplex` with a `safety_block`, see `grok-duplex.md` first. |
 | `approved_destinations` | On a dynamic service, the numbers the agent may choose from, each with a label. |
 | `fallback_to` | The line the call is handed to when the platform cannot run the agent. |
 | `hours`, `after_hours_destination` | Send transfers outside the staffed hours to one line. |

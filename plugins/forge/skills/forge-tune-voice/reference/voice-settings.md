@@ -103,6 +103,10 @@ forge platform service voice-config <service-id> --family gpt_live --model gpt-l
 
 Save the voice block first, and try the alpha on a test service before a live one (see `voice-verification.md`).
 
+### Grok Duplex
+
+`grok_duplex` keeps its settings in the `grok_duplex` block, including `reply_language` and `safety_block`. A service that sets its own `safety_block` together with a warm transfer needs a check: see `grok-duplex.md`.
+
 ## Presets and voices
 
 ```bash

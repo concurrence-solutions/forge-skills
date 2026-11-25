@@ -1,6 +1,6 @@
 ---
 name: forge-tune-voice
-description: Tune how a phone agent behaves on live calls with the forge CLI by reading a service's voice settings, changing one layer at a time with a saved copy to roll back to, and checking each change on real calls. Use when a forge binary is on PATH, a service has voice settings, and the user says the agent interrupts, talks over or cuts off callers, answers before they finish, asks callers to repeat or restart a code, mispronounces a name, reads a value back badly, will not hand off to a person, or says it sent something and the reply is cut, or asks about voice settings, voice families such as GPT-Live, voice models and voices, barge-in, turn detection or test calls. Not for building, validating, syncing or simulating an agent (use forge-build-agent, forge-validate, forge-sync, forge-simulate).
+description: Tune how a phone agent behaves on live calls with the forge CLI by reading a service's voice settings, changing one layer at a time with a saved copy to roll back to, and checking each change on real calls. Use when a forge binary is on PATH, a service has voice settings, and the user says the agent interrupts, talks over or cuts off callers, answers before they finish, asks callers to repeat or restart a code, mispronounces a name, reads a value back badly, will not hand off to a person, or says it sent something and the reply is cut, or asks about voice settings, voice families such as GPT-Live or Grok Duplex, a service's own safety section, voice models and voices, barge-in, turn detection or test calls. Not for building, validating, syncing or simulating an agent (use forge-build-agent, forge-validate, forge-sync, forge-simulate).
 ---
 
 # Forge Tune Voice
@@ -19,6 +19,7 @@ Use this skill when the user says things like:
 - "It says it sent something and the reply is cut."
 - "Which voice settings should I change?" (barge-in, turn detection, presets, voices)
 - "Put this service on GPT-Live" or "which voice models and voices can this service use?"
+- "Our Grok Duplex service has its own safety section and warm transfer. Will the agent brief the operator?"
 
 Observable preconditions: a `forge` binary on `PATH`, a profile in `.env.platform.<env>` that `forge auth status --platform` accepts, and a service with voice settings. This skill needs forge 0.1.82 or newer. Examples use `--env test-org` as the profile name, here and in `reference/`, with placeholder ids.
 
@@ -121,11 +122,12 @@ A `--body` write never removes a key. If the saved copy is `null` because the se
 | A reply with opening hours or open slots is cut for an unverified caller | The endpoint's `declarations.reads` | Declare `patient_in` as `none` on an endpoint that returns only practice data. `handoffs-and-confirmations.md`, Spoken confirmations |
 | You want another voice family, model or voice, such as GPT-Live | `session_provider`, then `forge platform voice-families list` | `voice-config --family` with a model and a voice the listings show. `voice-settings.md`, Choose a voice family |
 | It will not hand off, or the transfer never connects | `voice_config.forwarding`, then the phone line's allowed forwarding list | Set the block, `fallback_to` and a short announcement, and put each number on both lists. `handoffs-and-confirmations.md`, Two lists |
+| On a warm transfer, the person who answers hears nothing about the caller | `session_provider`, `grok_duplex.safety_block`, `forwarding.warm_transfer` | On `grok_duplex`, a service's own `safety_block` gets no warm rule, so its text must tell the agent to brief. Run the read-only check in `grok-duplex.md`, Check a service for the pair |
 | After closing time, a transfer rings a line nobody answers | `voice_config.forwarding.hours` | Set `hours` and `after_hours_destination` together on a dynamic service. `handoffs-and-confirmations.md`, After hours |
 | Test calls cut themselves off or answer themselves | How you place the call | Ask the user to use a headset or a handset. `voice-verification.md` |
 | Results change between rounds | The pins on `release` | Pin both numbers. `voice-verification.md` |
 
-The files in `reference/` hold the depth: `voice-settings.md` (settings, runtimes, turn-taking), `read-backs-and-pronunciation.md` (read-back formats, pronunciation levers), `handoffs-and-confirmations.md` (forwarding, the two transfer lists, transfers, codes, declared writes and reads) and `voice-verification.md` (pins, test paths, the call record, counts, sample size).
+The files in `reference/` hold the depth: `voice-settings.md` (settings, runtimes, turn-taking), `read-backs-and-pronunciation.md` (read-back formats, pronunciation levers), `handoffs-and-confirmations.md` (forwarding, the two transfer lists, transfers, codes, declared writes and reads), `grok-duplex.md` (the Grok Duplex settings, a service's own safety section and how it pairs with warm transfer) and `voice-verification.md` (pins, test paths, the call record, counts, sample size).
 
 ## Safety
 

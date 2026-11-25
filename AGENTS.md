@@ -22,7 +22,7 @@ the skills drive the binary the user already installed from `agent-forge-go`.
 - `forge-validate` - local, no-auth pre-push validation gate
 - `forge-sync` - read/edit/validate/deploy the entity JSON via `forge platform ...`
 - `forge-simulate` - regression sims + parity gate + rollback
-- `forge-tune-voice` - tune a phone or voice agent one layer at a time (+ `reference/voice-settings.md`, `reference/read-backs-and-pronunciation.md`, `reference/handoffs-and-confirmations.md`, `reference/voice-verification.md`)
+- `forge-tune-voice` - tune a phone or voice agent one layer at a time (+ `reference/voice-settings.md`, `reference/read-backs-and-pronunciation.md`, `reference/handoffs-and-confirmations.md`, `reference/grok-duplex.md`, `reference/voice-verification.md`)
 - `hello-forge` - placeholder
 
 ## Hard Rules
