@@ -21,7 +21,7 @@ Use this skill when the user says things like:
 - "Put this service on GPT-Live" or "which voice models and voices can this service use?"
 - "Put this service on Grok Duplex", "why was the save refused with `voice_family_graph_program`?" or "our Grok Duplex service has its own safety section and warm transfer. Will the agent brief the operator?"
 
-Observable preconditions: a `forge` binary on `PATH`, a profile in `.env.platform.<env>` that `forge auth status --platform` accepts, and a service with voice settings. This skill needs forge 0.1.82 or newer. Examples use `--env test-org` as the profile name, here and in `reference/`, with placeholder ids.
+Observable preconditions: a `forge` binary on `PATH`, a profile in `.env.platform.<env>` that `forge auth status --platform` accepts, and a service with voice settings. This skill needs forge 0.1.82 or newer, and 0.1.89 or newer for a Grok Duplex service (`reference/grok-duplex.md`). Examples use `--env test-org` as the profile name, here and in `reference/`, with placeholder ids.
 
 ### When NOT to use - route to a sibling instead
 

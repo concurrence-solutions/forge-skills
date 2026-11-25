@@ -1,6 +1,6 @@
 # Grok Duplex: what the family runs, its safety section and warm transfer
 
-Companion to `forge-tune-voice`. `grok_duplex` is a voice family on xAI's Grok Voice where xAI's server takes every turn: it decides when the caller has finished and when the agent may be cut off. A service on it keeps its family settings in `voice_config.grok_duplex`, read and written with `forge platform service voice-config` like every other block (see `voice-settings.md`). This page needs forge 0.1.88 or newer, the release whose `voice-families list` shows each family's channels and emergency floor.
+Companion to `forge-tune-voice`. `grok_duplex` is a voice family on xAI's Grok Voice where xAI's server takes every turn: it decides when the caller has finished and when the agent may be cut off. A service on it keeps its family settings in `voice_config.grok_duplex`, read and written with `forge platform service voice-config` like every other block (see `voice-settings.md`). This page needs forge 0.1.89 or newer: its `voice-families list` shows each family's channels, emergency floor, warm transfer and the languages a service on it may declare, and `voice-config --get --json` prints the `grok_duplex` block and `forwarding` as stored.
 
 ## Symptom to check
 
@@ -31,7 +31,8 @@ forge platform service get <service-id> --json --env test-org > service.json
 jq '{declared_languages, contact_lines, crisis_call_911_reply, medical_emergency_ending, emergency_floor}' service.json
 ```
 
-- `capabilities` shows `served_languages`, `channels`, `floor_enforced`, `multi_state`, `warm_transfer`, `outbound_calls` and `operator_takeover`. Trust the listing over this page when they differ.
+- The table form of `voice-families list` has `Channels`, `Emergency floor`, `Warm transfer` and `Languages` columns. After a `--family grok_duplex` write, forge also prints a note that the family runs no engine emergency floor and one that it serves only `en` and `es`.
+- `capabilities` in the `--json` form shows `served_languages`, `channels`, `floor_enforced`, `multi_state`, `warm_transfer`, `outbound_calls` and `operator_takeover`. Trust the listing over this page when they differ.
 - `availability` says whether your workspace can use the family, and why not.
 - These files can hold real forwarding numbers and the service's own safety text. Keep them out of notes, commits and pull requests.
 - forge has no command for a service's transfer-outcome instructions (Transfers below). Read and change those in the web console or with the API.
@@ -64,7 +65,7 @@ These save without an error and have no effect on a `grok_duplex` call:
 - In `voice_config`: `silence_policy`, `barge_in_min_speech_s`, `barge_in_cooldown_s`, `held_turn_policy`, `filler_style`, `progress_interval_ms` and `progress_vocabulary`. xAI's server decides turns and barge-in.
 - On the service: `contact_lines`, `crisis_call_911_reply`, `medical_emergency_ending` and `emergency_floor`. The platform lists each one a service sets as an ignored setting, and none of them is spoken. To change what the agent is told about safety, use `grok_duplex.safety_block`.
 
-The family reads `forwarding`, `keyterms`, `declared_languages` and its own `grok_duplex` block. The block's `model`, `voice`, `speed`, `reasoning_effort`, `keyterms`, `language_hint` and `replace` work as they do on `grok_voice`. Pick the model and voice from `voice-families list` and `voice-families voices grok_duplex`. A `--body` write that names `grok_duplex` replaces the whole object, so copy it from the saved file and send every key back.
+The family reads `forwarding`, `keyterms`, `declared_languages` and its own `grok_duplex` block. The block's `model`, `voice`, `speed`, `reasoning_effort`, `keyterms`, `language_hint` and `replace` work as they do on `grok_voice`. Pick the model and voice from `voice-families list` and `voice-families voices grok_duplex`. A `--body` write that names `grok_duplex` replaces the whole object, so copy it from the saved file and send every key back. `--family grok_duplex --model <model> --voice <voice>` keeps the block's other keys, `reply_language` and `safety_block` among them.
 
 ## Transfers
 
