@@ -9,7 +9,7 @@ Companion to `forge-tune-voice`. Three things callers notice quickly: whether th
 | Field | What it does |
 |---|---|
 | `forward_to` | The single number a transfer dials. Null on a dynamic service. |
-| `warm_transfer` | Chooses a warm or cold transfer. Set it explicitly. |
+| `warm_transfer` | Chooses a warm or cold transfer. Set it explicitly. On `grok_duplex` with a `safety_block`, see `grok-duplex.md` first. |
 | `approved_destinations` | On a dynamic service, the numbers the agent may choose from, each with a label. |
 | `fallback_to` | The line the call is handed to when the platform cannot run the agent. |
 | `hours`, `after_hours_destination` | Send transfers outside the staffed hours to one line. |
@@ -124,7 +124,7 @@ forge platform integration test <integration-id> <endpoint-name> --body '{"param
 
 ## Spoken confirmations: declare what an endpoint does
 
-The Platform runs reply checks that compare what the agent says it did with what its tools did. A check can miss or over-match a phrasing, so test your wording on calls. An endpoint that declares what it does gives a done claim something to rest on.
+The Platform runs reply checks that compare what the agent says it did with what its tools did. A check can miss or over-match a phrasing, so test your wording on calls. `grok_duplex` runs none of these checks, and a write runs there with no caller consent, so its instructions must confirm a write before the call and carry every rule about claims (see `grok-duplex.md`). An endpoint that declares what it does gives a done claim something to rest on.
 
 Declare `declarations.writes` on every integration endpoint whose result the agent confirms to the caller.
 
