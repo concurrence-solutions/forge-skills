@@ -48,6 +48,7 @@ Check `session_provider` before you tune. It resolves from the service, then the
 |---|---|
 | `gpt_realtime` (speech to speech) | `realtime.*`, `held_turn_policy` |
 | `gpt_live` (OpenAI listens and speaks, the platform's engine reasons) | `gpt_live.model`, `gpt_live.voice` |
+| `grok_duplex` (xAI listens, reasons, speaks and takes the turns) | `grok_duplex.*`, `forwarding`. None of the barge-in, held-turn, filler, silence or progress settings (see `grok-duplex.md`) |
 | The platform-managed runtime (speech recognition, reasoning and speech output as separate steps) | `barge_in_cooldown_s`, the filler fields, `max_response_sentences`, `max_response_words`, `eager_eot_threshold`, `eot_timeout_ms`, `post_eot_pause_ms`, `transition_deadline_ms`, `empathy_hold_ms`, a state's `turn_policy` |
 | Both | `barge_in_min_speech_s`, `forwarding`, `progress_vocabulary`, `progress_interval_ms` |
 
@@ -105,7 +106,7 @@ Save the voice block first, and try the alpha on a test service before a live on
 
 ### Grok Duplex
 
-`grok_duplex` keeps its settings in the `grok_duplex` block, including `reply_language` and `safety_block`. A service that sets its own `safety_block` together with a warm transfer needs a check: see `grok-duplex.md`.
+`grok_duplex` puts xAI's Grok Voice in charge of the whole call, turns included. It runs a direct program only, serves English and Spanish only, has no engine emergency floor and supports warm transfer. Its settings are in the `grok_duplex` block, including `reply_language` and `safety_block`. Read `grok-duplex.md` before you switch a service to it, and run its read-only check when a service sets its own `safety_block` together with a warm transfer.
 
 ## Presets and voices
 

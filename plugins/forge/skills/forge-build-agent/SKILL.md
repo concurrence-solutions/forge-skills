@@ -152,7 +152,7 @@ forge platform service voice-config <service-id> --get
 forge platform service escalation-policy <service-id> --get
 ```
 
-For a phone or voice agent, hand off to `/forge-tune-voice` before you change voice settings. A preset or body write is live for the next call, and a preset can clear the realtime settings, so read and save the current voice block first.
+For a phone or voice agent, hand off to `/forge-tune-voice` before you change voice settings. A service meant for the Grok Duplex voice family (`grok_duplex`) needs an agent version that runs a direct program with no context graph, and a service that declares only English or Spanish: read `reference/grok-duplex.md` in `/forge-tune-voice` before you build it. A preset or body write is live for the next call, and a preset can clear the realtime settings, so read and save the current voice block first.
 
 #### Step 7A - Pin versions with a version-set
 

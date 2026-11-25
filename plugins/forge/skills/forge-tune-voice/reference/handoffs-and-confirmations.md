@@ -124,7 +124,7 @@ forge platform integration test <integration-id> <endpoint-name> --body '{"param
 
 ## Spoken confirmations: declare what an endpoint does
 
-The Platform runs reply checks that compare what the agent says it did with what its tools did. A check can miss or over-match a phrasing, so test your wording on calls. An endpoint that declares what it does gives a done claim something to rest on.
+The Platform runs reply checks that compare what the agent says it did with what its tools did. A check can miss or over-match a phrasing, so test your wording on calls. `grok_duplex` runs none of these checks, and a write runs there with no caller consent, so its instructions must confirm a write before the call and carry every rule about claims (see `grok-duplex.md`). An endpoint that declares what it does gives a done claim something to rest on.
 
 Declare `declarations.writes` on every integration endpoint whose result the agent confirms to the caller.
 

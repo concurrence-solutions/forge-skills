@@ -19,7 +19,7 @@ Use this skill when the user says things like:
 - "It says it sent something and the reply is cut."
 - "Which voice settings should I change?" (barge-in, turn detection, presets, voices)
 - "Put this service on GPT-Live" or "which voice models and voices can this service use?"
-- "Our Grok Duplex service has its own safety section and warm transfer. Will the agent brief the operator?"
+- "Put this service on Grok Duplex", "why was the save refused with `voice_family_graph_program`?" or "our Grok Duplex service has its own safety section and warm transfer. Will the agent brief the operator?"
 
 Observable preconditions: a `forge` binary on `PATH`, a profile in `.env.platform.<env>` that `forge auth status --platform` accepts, and a service with voice settings. This skill needs forge 0.1.82 or newer. Examples use `--env test-org` as the profile name, here and in `reference/`, with placeholder ids.
 
@@ -123,11 +123,12 @@ A `--body` write never removes a key. If the saved copy is `null` because the se
 | You want another voice family, model or voice, such as GPT-Live | `session_provider`, then `forge platform voice-families list` | `voice-config --family` with a model and a voice the listings show. `voice-settings.md`, Choose a voice family |
 | It will not hand off, or the transfer never connects | `voice_config.forwarding`, then the phone line's allowed forwarding list | Set the block, `fallback_to` and a short announcement, and put each number on both lists. `handoffs-and-confirmations.md`, Two lists |
 | On a warm transfer, the person who answers hears nothing about the caller | `session_provider`, `grok_duplex.safety_block`, `forwarding.warm_transfer` | On `grok_duplex`, a service's own `safety_block` gets no warm rule, so its text must tell the agent to brief. Run the read-only check in `grok-duplex.md`, Check a service for the pair |
+| A setting changes nothing on `grok_duplex`, a save is refused with a `voice_family_*` code, or the agent replies in the wrong language | `session_provider`, then `voice-families list --json` | `grok-duplex.md`, Symptom to check |
 | After closing time, a transfer rings a line nobody answers | `voice_config.forwarding.hours` | Set `hours` and `after_hours_destination` together on a dynamic service. `handoffs-and-confirmations.md`, After hours |
 | Test calls cut themselves off or answer themselves | How you place the call | Ask the user to use a headset or a handset. `voice-verification.md` |
 | Results change between rounds | The pins on `release` | Pin both numbers. `voice-verification.md` |
 
-The files in `reference/` hold the depth: `voice-settings.md` (settings, runtimes, turn-taking), `read-backs-and-pronunciation.md` (read-back formats, pronunciation levers), `handoffs-and-confirmations.md` (forwarding, the two transfer lists, transfers, codes, declared writes and reads), `grok-duplex.md` (the Grok Duplex settings, a service's own safety section and how it pairs with warm transfer) and `voice-verification.md` (pins, test paths, the call record, counts, sample size).
+The files in `reference/` hold the depth: `voice-settings.md` (settings, runtimes, turn-taking), `read-backs-and-pronunciation.md` (read-back formats, pronunciation levers), `handoffs-and-confirmations.md` (forwarding, the two transfer lists, transfers, codes, declared writes and reads), `grok-duplex.md` (what Grok Duplex runs and refuses, its languages, the settings it does not read, its transfers, a service's own safety section and how it pairs with warm transfer) and `voice-verification.md` (pins, test paths, the call record, counts, sample size).
 
 ## Safety
 
