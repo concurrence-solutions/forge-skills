@@ -134,7 +134,7 @@ Before promoting, diff the two version-sets. The diff compares the agent pin, th
 forge platform version-set diff 00000000-0000-0000-0000-000000000000 candidate release --env staging --json
 ```
 
-Simulations run the service's `release` set, so they do not reach `candidate`. To simulate the candidate versions, give a test service those versions as its `release`, then run the same cases against the baseline and candidate. For onboarding, capture the baseline on the dedicated test service first, apply the candidate pins to that service, and repeat the cases. Save both pin readbacks and the corresponding run IDs. When comparing two services, match their model preferences and effective tool and data access. `service create` writes at once, so run it only when the user asks for a test service.
+Simulations run the service's `release` set, so they do not reach `candidate`. To simulate the candidate versions, give a test service those versions as its `release`, then run the same cases against the baseline and candidate. For onboarding, capture the baseline on the dedicated test service first, apply the candidate pins to that service, and repeat the cases. Save the service and run IDs, selected agent and graph versions, and the same case inputs for both trials. When comparing two services, match their model preferences and effective tool and data access. `service create` writes at once, so run it only when the user asks for a test service.
 
 ```bash
 forge platform service create --name "Acme Test Service" --agent-id 00000000-0000-0000-0000-000000000000 --context-graph-id 00000000-0000-0000-0000-000000000000
@@ -144,6 +144,10 @@ forge platform version-set upsert <test-service-id> release --body "$(cat test-p
 ```
 
 The upsert is a dry run until you add `--apply`.
+
+For a live SDK conversation, inspect its recorded manifest in conversation detail or Runs. Compare the loaded agent and Context Graph versions with the intended pins. If the manifest is missing, record that version attribution is unavailable. The service readback describes its configuration at the time of the read. Keep fixture responses labeled as scripted examples.
+
+For a native simulation suite, retain the suite run ID, the individual case executions, and the persisted verdicts from Simulations. Report passed and failed checks together with pending, skipped, and error counts. A reviewer rating a transcript should record their own verdict and which run they inspected. A suite launch alone supplies no measured result.
 
 GO / NO-GO rule of thumb: for each topic, ~10 sims on the safety-critical and core behaviors (use ~30+ when the call is close or you are proving parity between `candidate` and `release`; see step 2), the test service's sims at parity-or-better with the live service's, no regression in the coverage graph. If any of that fails, it is a NO-GO: fix the candidate and re-run from step 2. Do not promote.
 
