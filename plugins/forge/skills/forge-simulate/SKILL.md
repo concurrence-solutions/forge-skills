@@ -34,7 +34,7 @@ Use this skill only for the simulate -> parity-gate -> promote/rollback loop aga
 
 ## Workflow
 
-All commands are read-only except `version-set promote` / `version-set rollback`, which are dry-run until you add `--apply`. Use synthetic scenarios only — never real caller data.
+Use synthetic scenarios in a dedicated test workspace. Creating a service, run, or simulation session writes to the workspace. Preview version-set edits before applying them.
 
 Use a real service UUID in place of `00000000-0000-0000-0000-000000000000` and set `--env` to your profile or label (examples use `staging`).
 
@@ -134,7 +134,7 @@ Before promoting, diff the two version-sets. The diff compares the agent pin, th
 forge platform version-set diff 00000000-0000-0000-0000-000000000000 candidate release --env staging --json
 ```
 
-Simulations run the service's `release` set, so they do not reach `candidate`. To simulate the candidate versions, give a test service those versions as its `release`, then run the same sims on the live service and on the test service. Copy the live model preferences so the two services match. `service create` writes at once, so run it only when the user asks for a test service.
+Simulations run the service's `release` set, so they do not reach `candidate`. To simulate the candidate versions, give a test service those versions as its `release`, then run the same cases against the baseline and candidate. For onboarding, capture the baseline on the dedicated test service first, apply the candidate pins to that service, and repeat the cases. Save both pin readbacks and the corresponding run IDs. When comparing two services, match their model preferences and effective tool and data access. `service create` writes at once, so run it only when the user asks for a test service.
 
 ```bash
 forge platform service create --name "Acme Test Service" --agent-id 00000000-0000-0000-0000-000000000000 --context-graph-id 00000000-0000-0000-0000-000000000000
